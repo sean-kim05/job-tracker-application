@@ -69,6 +69,7 @@ export default function Applications({api}){
     api.listApplications({q,status}).then(data=>{setApps(data);setLoading(false)}).catch(()=>setLoading(false))
   }
 
+  useEffect(()=>{ api.listApplications({}).catch(()=>{}) },[])
   useEffect(()=>{ load() },[q,status])
 
   useEffect(()=>{
@@ -93,13 +94,21 @@ export default function Applications({api}){
 
   function showToast(message,type='success'){setToast({message,type})}
 
-  async function onAdd(data){await api.createApplication(data);setModal(null);load();showToast('Application added')}
-  async function onEdit(id,data){await api.updateApplication(id,data);setModal(null);load();showToast('Application updated')}
+  async function onAdd(data){
+    try{await api.createApplication(data);setModal(null);load();showToast('Application added')}
+    catch(e){showToast(e.message||'Failed to save — try again','error')}
+  }
+  async function onEdit(id,data){
+    try{await api.updateApplication(id,data);setModal(null);load();showToast('Application updated')}
+    catch(e){showToast(e.message||'Failed to update — try again','error')}
+  }
   async function onDelete(){
-    await api.deleteApplication(confirmId);setConfirmId(null);load();showToast('Application deleted','error')
+    try{await api.deleteApplication(confirmId);setConfirmId(null);load();showToast('Application deleted','error')}
+    catch(e){showToast(e.message||'Failed to delete — try again','error')}
   }
   async function onStatusChange(id,newStatus){
-    await api.updateApplication(id,{status:newStatus});load();showToast(`Status updated to ${newStatus}`)
+    try{await api.updateApplication(id,{status:newStatus});load();showToast(`Status updated to ${newStatus}`)}
+    catch(e){showToast(e.message||'Failed to update status','error')}
   }
 
   function SortIcon({col}){
